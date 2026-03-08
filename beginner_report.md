@@ -136,6 +136,56 @@ ecatbringdown();
 *   **LIBS**: `libjetson_soem.so` 라이브러리 파일을 링크(연결)합니다.
 *   **QMAKE_LFLAGS (RPATH)**: 프로그램이 실행될 때 `.so` 파일이 어디 있는지 알려주는 경로 정보입니다.
 
+### 5-1. `jetson_ecat_engine.pro` 라인별 상세 설명
+
+자동 생성되는 `.pro` 파일의 핵심은 아래와 같습니다.
+
+```pro
+QT -= gui
+CONFIG += c++11 console
+CONFIG -= app_bundle
+TARGET = jetson_ecat_engine
+QMAKE_CC = gcc
+QMAKE_CXX = g++
+QMAKE_LINK = g++
+SOURCES += main.cpp
+HEADERS += ec_sample.h
+INCLUDEPATH += /home/pjy/soem_lib_build
+LIBS += -L/home/pjy/soem_lib_build -lec_sample
+QMAKE_LFLAGS += -Wl,-rpath,/home/pjy/soem_lib_build
+QMAKE_POST_LINK += sudo -n /usr/sbin/setcap 'cap_net_raw,cap_net_admin=eip' $$OUT_PWD/$$TARGET 2>/dev/null || true
+```
+
+*   `QMAKE_CC/QMAKE_CXX/QMAKE_LINK = gcc/g++`: Kit의 clang 충돌을 피하고 빌드 도구를 고정합니다.
+*   `LIBS += -L... -lec_sample`: `libec_sample.so`를 링크합니다.
+*   `QMAKE_LFLAGS (RPATH)`: 실행 파일이 런타임에 `.so` 위치를 찾도록 경로를 심습니다.
+*   `QMAKE_POST_LINK`: 빌드 직후 `setcap`을 시도해 Raw Socket 권한을 자동 적용합니다(실패해도 빌드 중단 방지).
+
+### 5-2. 디렉터리 구조(tree)와 역할
+
+```text
+~/
+├── j_soem_master/                # 원본 SOEM 소스(읽기 중심)
+├── soem_lib_build/               # 라이브러리 빌드 영역
+│   ├── ec_sample.c               # 주 수정 대상
+│   ├── ec_sample.h
+│   ├── Makefile
+│   ├── rebuild_so.sh
+│   └── libec_sample.so
+└── jetson_ecat_engine/           # Qt 실행 프로젝트
+    ├── jetson_ecat_engine.pro
+    ├── main.cpp
+    ├── ec_sample.h
+    ├── libec_sample.so
+    ├── enable_auto_admin.sh
+    ├── beginner_report.md
+    └── video_guide.md
+```
+
+*   `soem_lib_build`: EtherCAT 통신 라이브러리를 굽는 공장
+*   `jetson_ecat_engine`: Qt Creator에서 실제 실행/테스트하는 프로젝트
+*   `rebuild_so.sh` 또는 `Lib_make_run.cmd` 실행 시 `.so`/`.h`가 프로젝트 폴더로 반영됩니다.
+
 ## 5. 라이브러리 주요 API 목록
 
 | 함수명 | 설명 |

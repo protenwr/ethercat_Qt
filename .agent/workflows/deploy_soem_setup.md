@@ -130,3 +130,41 @@ make clean && make -j4
 
 **효과**: Deploy 스크립트가 파싱 단계에서 중단되지 않고 정상 실행됩니다.
 
+## 6. Qt `.pro` 및 생성 디렉터리 구조 (운영 기준)
+
+### 6.1 `jetson_ecat_engine.pro` 핵심 항목
+
+* `TARGET = jetson_ecat_engine`: 생성 실행 파일 이름
+* `QMAKE_CC/QMAKE_CXX/QMAKE_LINK = gcc/g++`: Kit/clang 충돌 회피
+* `SOURCES += main.cpp`, `HEADERS += ec_sample.h`: Qt 빌드 입력
+* `INCLUDEPATH += /home/<user>/soem_lib_build`: 헤더 탐색 경로
+* `LIBS += -L/home/<user>/soem_lib_build -lec_sample`: `libec_sample.so` 링크
+* `QMAKE_LFLAGS += -Wl,-rpath,/home/<user>/soem_lib_build`: 런타임 라이브러리 경로 내장
+* `QMAKE_POST_LINK += sudo -n /usr/sbin/setcap ... || true`: 빌드 후 권한 적용 시도(실패해도 빌드 유지)
+
+### 6.2 생성 디렉터리 구조
+
+```text
+~/
+├── j_soem_master/
+├── soem_lib_build/
+│   ├── ec_sample.c
+│   ├── ec_sample.h
+│   ├── Makefile
+│   ├── rebuild_so.sh
+│   └── libec_sample.so
+└── jetson_ecat_engine/
+    ├── jetson_ecat_engine.pro
+    ├── main.cpp
+    ├── ec_sample.h
+    ├── libec_sample.so
+    ├── enable_auto_admin.sh
+    ├── beginner_report.md
+    └── video_guide.md
+```
+
+운영 포인트:
+* 라이브러리 수정은 `~/soem_lib_build/ec_sample.c`에서 수행
+* 반영은 `rebuild_so.sh` 또는 `Lib_make_run.cmd`로 수행
+* Qt UI 갱신은 `Qt_run.cmd`로 현재 프로젝트만 재시작
+
