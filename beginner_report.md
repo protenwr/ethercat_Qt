@@ -109,6 +109,19 @@ cd ~/soem_lib_build
 ./rebuild_so.sh ~/jetson_ecat_engine
 ```
 
+### 2-1단계: (권장) 헤더까지 프로젝트로 수동 동기화
+함수 시그니처를 바꿨거나 `ec_sample.h`가 변경된 경우, 아래 한 줄을 추가로 실행해 주세요.
+
+```bash
+cp ~/soem_lib_build/ec_sample.h ~/jetson_ecat_engine/
+```
+
+반영 확인은 아래 명령으로 가능합니다.
+
+```bash
+ls -l ~/soem_lib_build/libec_sample.so ~/jetson_ecat_engine/libec_sample.so ~/jetson_ecat_engine/ec_sample.h
+```
+
 ### 3단계: Qt Creator에서 통신 돌리기 (`main.cpp`)
 Qt 프로젝트에서는 더 이상 잡다한 설정 없이, 라이브러리에 뚫어놓은 직관적인 함수만 호출하면 됩니다.
 ```cpp
@@ -221,6 +234,11 @@ sudo setcap 'cap_net_raw,cap_net_admin=eip' ~/jetson_ecat_engine/jetson_ecat_eng
 
 ### [참고] 라이브러리 수정 및 빌드 워크플로우
 SOEM의 핵심 라이브러리 소스는 `~/soem_lib_build`에서 관리합니다. 여기서 코드를 수정하고 빌드하면 그 결과물이 프로젝트 폴더(`~/jetson_ecat_engine`)로 자동 전달되어 사용됩니다.
+
+#### Jetson 단독 워크플로우 (Windows 없이)
+1. `gedit ~/soem_lib_build/ec_sample.c &`로 코드 수정
+2. `./rebuild_so.sh ~/jetson_ecat_engine`로 라이브러리 재빌드/복사
+3. 필요 시 `cp ~/soem_lib_build/ec_sample.h ~/jetson_ecat_engine/`로 헤더 동기화
 
 ### [참고] 계정 입력/캐시 정책
 `Deploy-SOEM.cmd`, `Lib_make_run.cmd`, `Qt_run.cmd`는 공통 자격증명 파일(`%USERPROFILE%\.qt_ecat_jetson_cred.xml`)을 사용합니다.
